@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Management System</title>
+    <style>
+        /* Your existing styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        header {
+            background-color: #6c757d;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1rem;
+        }
+
+        .nav-center {
+            display: flex;
+            justify-content: center;
+            flex-grow: 1;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+        }
+
+        nav ul li {
+            margin: 0 1rem;
+            position: relative;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+        }
+
+        nav ul li ul {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #6c757d;
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            z-index: 1;
+        }
+
+        nav ul li:hover ul {
+            display: block;
+        }
+
+        nav ul li ul li {
+            margin: 0;
+        }
+
+        nav ul li ul li a {
+            display: block;
+            padding: 0.5rem 1rem;
+        }
+
+        main {
+            padding: 2rem;
+        }
+
+        section {
+            margin-bottom: 2rem;
+        }
+
+        .specialities {
+            background-color: white;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            vertical-align: top;
+            width: calc(33% - 2rem);
+            box-sizing: border-box;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        .user-icon {
+            cursor: pointer;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Hospital Management System</h1>
+        <nav>
+            <div class="nav-center">
+                <ul>
+                    <li><a href="/myappointments">My Appointments</a></li>
+                    <li><a href="/patientprescription">My Prescription</a></li>
+                    <!-- <li><a href="/cancelled">Cancelled Appointments</a></li> -->
+                    <li><a href="/about">About</a></li>
+                </ul>
+            </div>
+            <ul>
+                <li class="user-icon" onclick="showUserDetails()">User</li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section id="specialities" class="specialities">
+            <h2>Specialities</h2>
+            {% for speciality in specialities %}
+            <div class="card">
+                <h3>{{ speciality }}</h3>
+                <form action="/specialities" method="get">
+                    <input type="hidden" name="speciality" value="{{ speciality }}">
+                    <button type="submit">Book Appointment</button>
+                </form>
+            </div>
+            {% endfor %}
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Hospital Management System. All rights reserved.</p>
+    </footer>
+
+    <!-- The Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>User Details</h2>
+            <p id="userDetails"></p>
+        </div>
+    </div>
+
+    <script>
+        function showUserDetails() {
+            fetch('/userdetails')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('userDetails').innerHTML = `
+                        <p>Patient ID: ${data.patientId}</p>
+                        <p>First Name: ${data.firstname}</p>
+                        <p>Last Name: ${data.lastname}</p>
+                        <p>Username: ${data.username}</p>
+                        <p>Contact No: ${data.contactno}</p>
+                        <p>Address: ${data.address}</p>
+                        <p>Date of Birth: ${data.dob}</p>
+                    `;
+                    document.getElementById('userModal').style.display = 'block';
+                });
+        }
+
+        function closeModal() {
+            document.getElementById('userModal').style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            if (event.target == document.getElementById('userModal')) {
+                document.getElementById('userModal').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>

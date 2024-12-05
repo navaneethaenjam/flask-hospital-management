@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background-image: url("static/Hospital-Management-System.jpg");
+            height: 100vh;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            display: flex;
+            align-items: center;
+        }
+
+        .container {
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+
+        .card {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .signup-link {
+            display: flex;
+            align-items: center;
+        }
+
+        .signup-link h6 {
+            margin-right: 10px;
+        }
+
+        .signup-link.hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title text-center">Login</h3>
+                        <form id="loginForm">
+                            <div class="form-group">
+                                <label for="role">Role</label>
+                                <select class="form-control" id="role" name="role" required>
+                                    <option value="">Select Role</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="doctor">Doctor</option>
+                                    <option value="patient">Patient</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" class="form-control" id="username" name="username"
+                                    placeholder="Enter your username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" class="form-control" id="password" name="password"
+                                    placeholder="Enter your password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Login</button>
+                            <div class="signup-link" id="signupLink">
+                                <h6>Don't have an account?</h6>
+                                <a href="/signup" class="btn btn-link">Signup</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script>
+        $(document).ready(function () {
+            $('#role').change(function () {
+                var role = $(this).val();
+                if (role === 'admin' || role === 'doctor') {
+                    $('#signupLink').addClass('hidden');
+                } else {
+                    $('#signupLink').removeClass('hidden');
+                }
+            });
+
+            $('#loginForm').submit(function (event) {
+                event.preventDefault();
+
+                var role = $('#role').val();
+                var username = $('#username').val();
+                var password = $('#password').val();
+
+                var data = {
+                    role: role,
+                    username: username,
+                    password: password
+                };
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/login',
+                    data: data,
+                    success: function (response) {
+                        if (response.success) {
+                            if (role === "doctor" && response.firstLogin) {
+                                window.location.href = '/change_password';
+                            } else if (role === "doctor") {
+                                window.location.href = '/doctor_details';
+                            } else if (role === "patient") {
+                                window.location.href = '/home';
+                            } else {
+                                window.location.href = '/admin_dashboard';
+                            }
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error:', error);
+                    }
+                });
+            });
+        });
+
+    </script>
+</body>
+
+</html>

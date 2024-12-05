@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancelled Appointments</title>
+    <style>
+        /* Add your existing styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        header {
+            background-color: #6c757d;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .back-to-home {
+            position: absolute;
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 0.25rem;
+            text-decoration: none;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1rem;
+        }
+
+        .nav-center {
+            display: flex;
+            justify-content: center;
+            flex-grow: 1;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+        }
+
+        nav ul li {
+            margin: 0 1rem;
+            position: relative;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2rem;
+        }
+
+        main {
+            padding: 2rem;
+        }
+
+        section {
+            margin-bottom: 2rem;
+        }
+
+        .appointment {
+            background-color: white;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ced4da;
+        }
+
+        th,
+        td {
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Hospital Management System</h1>
+        <a href="/home" class="back-to-home">Back to Home</a>
+    </header>
+    <main>
+        <section id="cancelledAppointments" class="appointment">
+            <h2>Cancelled Appointments</h2>
+            <table id="cancelledAppointmentsTable">
+                <thead>
+                    <tr>
+                        <th>Appointment ID</th>
+                        <th>Patient Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Doctor Name</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Cancelled Appointment rows will be inserted here -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCancelledAppointments();
+        });
+
+        function loadCancelledAppointments() {
+            fetch('/cancelled_appointments')
+                .then(response => response.json())
+                .then(data => {
+                    const cancelledAppointmentsTable = document.getElementById('cancelledAppointmentsTable').getElementsByTagName('tbody')[0];
+                    cancelledAppointmentsTable.innerHTML = '';
+
+                    data.forEach(appointment => {
+                        let row = cancelledAppointmentsTable.insertRow();
+                        row.insertCell(0).innerHTML = appointment.appointmentId;
+                        row.insertCell(1).innerHTML = appointment.patientName;
+                        row.insertCell(2).innerHTML = appointment.patientEmail;
+                        row.insertCell(3).innerHTML = appointment.patientPhone;
+                        row.insertCell(4).innerHTML = appointment.doctorName;
+                        row.insertCell(5).innerHTML = appointment.appointmentDate;
+                        row.insertCell(6).innerHTML = appointment.appointmentTime;
+                        row.insertCell(7).innerHTML = appointment.status;
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+
+</html>

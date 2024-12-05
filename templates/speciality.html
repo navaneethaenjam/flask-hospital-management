@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ specialization }} Doctors</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        header {
+            background-color: #6c757d;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        .container {
+            padding: 2rem;
+        }
+
+        .doctor-card {
+            background-color: white;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .doctor-card h3 {
+            margin-top: 0;
+        }
+
+        .doctor-card button {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+
+        .schedule-container {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #e9ecef;
+            border-radius: 0.25rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 2rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            width: 50%;
+            position: relative;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-content input,
+        .modal-content textarea,
+        .modal-content select {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+        }
+
+        .modal-content button {
+            padding: 0.5rem 1rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .time-slot-button {
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .time-slot-button.disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .time-slot-button.selected {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .back-to-home {
+
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 0.25rem;
+            text-decoration: none;
+        }
+
+        .back-to-home:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+
+        <h1>Hospital Management System</h1>
+        <a href="/home" class="back-to-home">Back to Home</a>
+
+        <h1>{{ specialization }} Doctors</h1>
+    </header>
+    <div class="container" id="doctor-container">
+        {% for doctor in doctors %}
+        <div class="doctor-card" id="doctor-{{ doctor.DoctorID }}">
+            <h3>{{ doctor.FirstName }} {{ doctor.LastName }}</h3>
+            <p>Doctor ID: {{ doctor.DoctorID }}</p>
+            <p>Specialization: {{ doctor.Specialization }}</p>
+            <p>Phone: {{ doctor.Phone }}</p>
+            <p>Email: {{ doctor.email }}</p>
+            <button
+                onclick="openModal('{{ doctor.DoctorID }}','{{ doctor.FirstName }} {{ doctor.LastName }}', '{{ doctor.Specialization }}')">Book
+                Appointment</button>
+            <div class="schedule-container" id="schedule-{{ doctor.DoctorID }}">
+                <p><strong>Available Days:</strong> <span id="days-{{ doctor.DoctorID }}"></span></p>
+                <p><strong>Time Slots:</strong> <span id="slots-{{ doctor.DoctorID }}"></span></p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="appointmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Book Appointment</h2>
+            <p id="doctorDetails"></p>
+            <form id="appointmentForm">
+                <label for="patientName">Patient Name:</label>
+                <input type="text" id="patientName" name="patientName" required readonly>
+
+                <label for="patientEmail">Patient Email:</label>
+                <input type="email" id="patientEmail" name="patientEmail" required readonly>
+
+                <label for="patientPhone">Patient Phone:</label>
+                <input type="text" id="patientPhone" name="patientPhone" required readonly>
+
+                <label for="appointmentDate">Appointment Date:</label>
+                <input type="date" id="appointmentDate" name="appointmentDate" required>
+
+                <div id="timeSlotContainer"></div>
+
+                <label for="medications">Medications:</label>
+                <input type="text" id="medications" name="medications" required>
+
+                <label for="medicalHistory">Previous Medical History:</label>
+                <textarea id="medicalHistory" name="medicalHistory" required></textarea>
+
+                <input type="hidden" id="DoctorID" name="DoctorID">
+                <input type="hidden" id="doctorName" name="doctorName">
+                <input type="hidden" id="doctorSpecialization" name="doctorSpecialization">
+                <input type="hidden" id="appointmentTime" name="appointmentTime">
+
+                <button type="submit">Confirm</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const timeSlots = [
+            '10:00 AM - 10:30 AM',
+            '10:30 AM - 11:00 AM',
+            '11:00 AM - 11:30 AM',
+            '11:30 AM - 12:00 PM',
+            '12:00 PM - 12:30 PM',
+            '12:30 PM - 01:00 PM',
+            '01:00 PM - 01:30 PM',
+            '01:30 PM - 02:00 PM',
+            '02:00 PM - 02:30 PM',
+            '02:30 PM - 03:00 PM',
+            '03:00 PM - 03:30 PM',
+            '03:30 PM - 04:00 PM',
+            '04:00 PM - 04:30 PM',
+            '04:30 PM - 05:00 PM'
+        ];
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const doctorCards = document.querySelectorAll('.doctor-card');
+            doctorCards.forEach(card => {
+                const doctorID = card.id.split('-')[1];
+                fetchDoctorSchedule(doctorID);
+            });
+        });
+
+        function fetchDoctorSchedule(doctorID) {
+            fetch(`/get_doctor_schedule?doctorID=${doctorID}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById(`schedule-${doctorID}`).innerHTML = `<p>${data.error}</p>`;
+                        return;
+                    }
+                    document.getElementById(`days-${doctorID}`).textContent = data.Days.join(', ');
+                    document.getElementById(`slots-${doctorID}`).textContent = data.TimeSlots.join(', ');
+                })
+                .catch(error => {
+                    console.error('Error fetching doctor schedule:', error);
+                    document.getElementById(`schedule-${doctorID}`).innerHTML = `<p>Failed to fetch schedule. Please try again.</p>`;
+                });
+        }
+
+        function openModal(doctorID, doctorName, doctorSpecialization) {
+            document.getElementById('DoctorID').value = doctorID;
+            document.getElementById('doctorName').value = doctorName;
+            document.getElementById('doctorSpecialization').value = doctorSpecialization;
+            document.getElementById('doctorDetails').innerText = `Doctor ID: ${doctorID} | Doctor: ${doctorName} | Specialization: ${doctorSpecialization}`;
+
+            fetch('/get_patient_info')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('patientName').value = data.firstname;
+                    document.getElementById('patientEmail').value = data.username;
+                    document.getElementById('patientPhone').value = data.contactno;
+                });
+
+            document.getElementById('appointmentModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('appointmentModal').style.display = 'none';
+        }
+
+        function fetchAvailableTimeSlots() {
+            const selectedDate = document.getElementById('appointmentDate').value;
+            const doctorID = document.getElementById('DoctorID').value;
+
+            fetch(`/get_available_slots?doctorID=${doctorID}&date=${selectedDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const timeSlotContainer = document.getElementById('timeSlotContainer');
+                    timeSlotContainer.innerHTML = '';
+
+                    timeSlots.forEach(slot => {
+                        const button = document.createElement('button');
+                        button.classList.add('time-slot-button');
+                        button.textContent = slot;
+
+                        if (data.availableSlots.includes(slot)) {
+                            button.addEventListener('click', function () {
+                                document.getElementById('appointmentTime').value = slot;
+                                const previouslySelected = document.querySelector('.time-slot-button.selected');
+                                if (previouslySelected) {
+                                    previouslySelected.classList.remove('selected');
+                                }
+                                button.classList.add('selected');
+                                alert(`Time slot selected: ${slot}`);
+                            });
+                        } else {
+                            button.disabled = true;
+                            button.classList.add('disabled');
+                        }
+
+                        timeSlotContainer.appendChild(button);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching available time slots:', error);
+                    alert('Failed to fetch available time slots. Please try again.');
+                });
+        }
+
+        document.getElementById('appointmentDate').addEventListener('input', function () {
+            const inputDate = new Date(this.value);
+            const now = new Date();
+            const minuteDifference = (inputDate.getTime() - now.getTime()) / (1000 * 60);
+
+            if (inputDate.getDate() === now.getDate()) {
+                if (minuteDifference < 30) {
+                    alert('Please select a date and time at least 30 minutes from now.');
+                    this.value = '';
+                } else {
+                    fetchAvailableTimeSlots();
+                }
+            } else {
+                fetchAvailableTimeSlots();
+            }
+        });
+
+        document.getElementById('appointmentForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            const appointmentData = {};
+            formData.forEach((value, key) => {
+                appointmentData[key] = value;
+            });
+
+            fetch('/book_appointment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(appointmentData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Appointment booked successfully!');
+                        document.getElementById('appointmentModal').style.display = 'none';
+                        resetForm();
+                    } else {
+                        alert('Failed to book appointment. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to book appointment. Please try again.');
+                });
+        });
+
+        function resetForm() {
+            document.getElementById('appointmentForm').reset();
+            document.getElementById('timeSlotContainer').innerHTML = '';
+        }
+
+        window.onload = function () {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('appointmentDate').setAttribute('min', today);
+        };
+
+        window.onclick = function (event) {
+            const modal = document.getElementById('appointmentModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>

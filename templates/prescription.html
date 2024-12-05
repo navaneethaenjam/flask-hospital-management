@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Prescription</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        header {
+            background-color: #6c757d;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            position: relative;
+        }
+
+        .back-to-home {
+            position: absolute;
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 0.25rem;
+            text-decoration: none;
+        }
+
+        .back-to-home:hover {
+            background-color: #0056b3;
+        }
+
+        .payment-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 0.25rem;
+            text-decoration: none;
+            display: block;
+            margin: 1rem auto;
+            text-align: center;
+        }
+
+        .payment-button:hover {
+            background-color: #218838;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal input,
+        .modal select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+
+        .modal button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 0.25rem;
+        }
+
+        .modal button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Hospital Management System</h1>
+        <a href="/home" class="back-to-home">Back to Home</a>
+    </header>
+    <h1>My Prescription</h1>
+    <table id="prescriptionTable">
+        <thead>
+            <tr>
+                <th>Patient ID</th>
+                <th>Doctor ID</th>
+                <th>Medications</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Payment Information</h2>
+            <label> Fee: $50</label>
+            <form id="paymentForm">
+                <label for="cardType">Card Type:</label>
+                <select id="cardType" name="cardType">
+                    <option value="credit">Credit card</option>
+                    <option value="debit">Debit Card</option>
+                </select>
+                <label for="cardNumber">Card Number:</label>
+                <input type="text" id="cardNumber" name="cardNumber" required>
+                <label for="cvv">CVV:</label>
+                <input type="text" id="cvv" name="cvv" required>
+                <label for="expiryDate">Expiry Date:</label>
+                <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" required>
+                <h3>Medical Insurance Information</h3>
+                <label for="primaryInsurance">Primary Insurance:</label>
+                <input type="text" id="primaryInsurance" name="primaryInsurance" required>
+                <label for="insuranceCompany">Insurance Company:</label>
+                <input type="text" id="insuranceCompany" name="insuranceCompany" required>
+                <label for="policyNumber">Policy Number:</label>
+                <input type="text" id="policyNumber" name="policyNumber" required>
+                <button type="submit">Submit Payment</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentPrescriptionId = null;
+
+        window.onload = function () {
+            fetch('/myprescription')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('prescriptionTable').querySelector('tbody');
+                    tableBody.innerHTML = '';  // Clear existing table rows
+                    data.forEach(prescription => {
+                        const row = document.createElement('tr');
+                        let medicationsContent = 'No medications required';
+                        if (prescription.Medications && prescription.Medications.length > 0) {
+                            const allEmpty = prescription.Medications.every(med =>
+                                !med.medicationName && !med.dosage && !med.frequency && !med.instructions && !med.date);
+                            if (!allEmpty) {
+                                medicationsContent = prescription.Medications.map(med => `
+                                Name: ${med.medicationName || ''}, Dosage: ${med.dosage || ''}, Frequency: ${med.frequency || ''}, Instructions: ${med.instructions || ''}, Date: ${med.date || ''}`).join('<br>');
+                            }
+                        }
+                        row.innerHTML = `
+                        <td>${prescription.PatientID}</td>
+                        <td>${prescription.DoctorID}</td>
+                        <td>${medicationsContent}</td>
+                        <td><button class="payment-button" onclick="openModal('${prescription._id}')">Make a Payment</button></td>
+                    `;
+                        tableBody.appendChild(row);
+                    });
+                });
+        };
+
+        function openModal(prescriptionId) {
+            currentPrescriptionId = prescriptionId;
+            document.getElementById('paymentModal').style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById('paymentModal').style.display = "none";
+        }
+
+        document.getElementById('paymentForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+            data.prescriptionId = currentPrescriptionId;
+            fetch('/billing', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.json())
+                .then(result => {
+                    alert('Payment successful');
+                    closeModal();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Payment failed');
+                });
+        });
+    </script>
+</body>
+
+</html>
